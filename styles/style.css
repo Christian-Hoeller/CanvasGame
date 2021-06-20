@@ -6,8 +6,12 @@
 
 .score-table{
     position: absolute;
-    top: 0;
+    top: 6em;
     color:white;
     font-family: monospace;
     padding: 10px;
+}
+
+nav{
+    padding:1em;
 }

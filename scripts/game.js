@@ -242,6 +242,10 @@ document.addEventListener("keyup", (e) =>  {
     }
 })
 
+document.getElementById("btnShowDistances").addEventListener("click", (e) => {
+    showCollisionDistances = !showCollisionDistances;
+})
+
 //#endregion
 
 const init = () => {
@@ -261,15 +265,16 @@ const init = () => {
 }
 
 const drawCollisionDistance = (distance, firstLocation, secondLocation) => {
-    if(distance < canvas.width / 2){
+    if(distance < canvas.width){
 
         let color = getColorForCollisionDistance(distance);
+        let lineWidth = getLineWidthForCollisionDistance(distance);
 
         context.beginPath();
         context.moveTo(firstLocation.x, firstLocation.y);
         context.lineTo(secondLocation.x, secondLocation.y);
         context.strokeStyle = color;
-        context.lineWidth = 1;
+        context.lineWidth = lineWidth;
         context.stroke();
 
         //write distance
@@ -295,11 +300,20 @@ const getCollisionTextLocation = (firstLocation, secondLocation) => {
     return {x: distanceX, y: distanceY};
 }
 
+const getLineWidthForCollisionDistance = (distance) => {
+    let lineWidth = 0.3;
+
+    if(distance < canvas.width / 10)
+        lineWidth = 1;
+
+    return lineWidth;
+}
+
 const getColorForCollisionDistance = (distance) => {
 
     let color = "green";
 
-    if(distance < canvas.width / 4)
+    if(distance < canvas.width / 10)
         color = "red";
 
     return color;
