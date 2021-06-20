@@ -24,6 +24,8 @@ let highScore = 0;
 let enemies = [];
 let player;
 
+let showCollisionDistances = true;
+
 window.addEventListener('resize', () => {
     canvas.width = window.innerWidth;
     canvas.height = window.innerHeight;
@@ -162,6 +164,8 @@ const updateEnemis = () => {
     }
 }
 
+
+
 const isDistanceValid = (enemy) => {
 
     let distanceIsValid = true;
@@ -172,9 +176,10 @@ const isDistanceValid = (enemy) => {
 
             let otherEnemy = otherEnemies[j];
 
-            let distanceX = Math.pow((enemy.x - otherEnemy.x), 2);
-            let distanceY = Math.pow((enemy.y - otherEnemy.y), 2);
-            let distance = Math.sqrt(distanceX + distanceY);
+            let firstLocation = {x: enemy.x, y: enemy.y};
+            let secondLocation = {x: otherEnemy.x, y: otherEnemy.y};
+
+            let distance = getDistanceBetweenPoints(firstLocation, secondLocation);
 
             distance -= enemy.radius;
             distance -= otherEnemy.radius
@@ -185,6 +190,13 @@ const isDistanceValid = (enemy) => {
         }
 
     return distanceIsValid;
+}
+
+const getDistanceBetweenPoints = (firstLocation, secondLocation) => {
+
+    let distanceX = Math.pow((firstLocation.x - secondLocation.x), 2);
+    let distanceY = Math.pow((firstLocation.y - secondLocation.y), 2);
+    return Math.sqrt(distanceX + distanceY);
 }
 
 const drawEnemy = (x, y, radius) => {
@@ -248,16 +260,63 @@ const init = () => {
     canShowConfirm = true;
 }
 
+const drawCollisionDistance = (distance, firstLocation, secondLocation) => {
+    if(distance < canvas.width / 2){
+
+        let color = getColorForCollisionDistance(distance);
+
+        context.beginPath();
+        context.moveTo(firstLocation.x, firstLocation.y);
+        context.lineTo(secondLocation.x, secondLocation.y);
+        context.strokeStyle = color;
+        context.lineWidth = 1;
+        context.stroke();
+
+        //write distance
+        context.font = "10px Arial";
+        const textLocation = getCollisionTextLocation(firstLocation, secondLocation);
+        let distanceTwoDecimal = distance.toFixed(2);
+        context.fillStyle = color;
+        context.fillText(distanceTwoDecimal, textLocation.x, textLocation.y);
+    }
+}
+
+const getCollisionTextLocation = (firstLocation, secondLocation) => {
+
+    let shortestX = firstLocation.x > secondLocation.x ? secondLocation.x : firstLocation.x;
+    let longestX = firstLocation.x < secondLocation.x ? secondLocation.x : firstLocation.x;
+
+    let shortestY = firstLocation.y > secondLocation.y ? secondLocation.y : firstLocation.y;
+    let longestY = firstLocation.y < secondLocation.y ? secondLocation.y : firstLocation.y;
+
+    let distanceX = shortestX + ((longestX - shortestX) / 2);
+    let distanceY = shortestY + ((longestY - shortestY) / 2);
+
+    return {x: distanceX, y: distanceY};
+}
+
+const getColorForCollisionDistance = (distance) => {
+
+    let color = "green";
+
+    if(distance < canvas.width / 4)
+        color = "red";
+
+    return color;
+}
 
 const animate = () => {
     
     requestAnimationFrame(animate);
 
+    //clear game
+    context.fillStyle = "black";
+    context.fillRect(0, 0, canvas.width, canvas.height);
+
     gameOver = isPlayerCollision();
     let canShowConfirm = true;
 
     if(!gameOver){
-        context.clearRect(0, 0, canvas.width, canvas.height);
         drawScene();
         updateScoretable();
     }
@@ -280,9 +339,13 @@ const isPlayerCollision = () => {
     for(let i = 0; i < enemies.length; i++) {
         let enemy = enemies[i];
 
-        let distanceX = Math.pow((player.x - enemy.x), 2);
-        let distanceY = Math.pow((player.y - enemy.y), 2);
-        let distance = Math.sqrt(distanceX + distanceY);
+        let playerLocation = {x: player.x, y: player.y};
+        let enemyLocation = {x: enemy.x, y: enemy.y};
+
+        let distance = getDistanceBetweenPoints(playerLocation, enemyLocation);
+
+        if(showCollisionDistances)
+            drawCollisionDistance(distance, playerLocation, enemyLocation);
 
         distance -= player.radius
         distance -= enemy.radius;
@@ -296,8 +359,6 @@ const isPlayerCollision = () => {
 }
 
 const drawScene = () => {
-    context.fillStyle = "black";
-    context.fillRect(0, 0, canvas.width, canvas.height);
     updateEnemis();
     drawEnemies();
     drawPlayer();
